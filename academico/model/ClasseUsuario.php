@@ -10,8 +10,7 @@ class ClasseUsuario {
     private $permDelete;
 
     // Construtor
-    public function __construct($codigo = null, $nome = null, $usuario = null, $senha = null,
-                                $permCreate = 0, $permRead = 0, $permUpdate = 0, $permDelete = 0) {
+    public function __construct($codigo, $nome, $usuario, $senha, $permCreate, $permRead, $permUpdate, $permDelete) {
         $this->codigo     = $codigo;
         $this->nome       = $nome;
         $this->usuario    = $usuario;
@@ -98,12 +97,15 @@ class ClasseUsuario {
                 ':r'       => $this->permRead,
                 ':u'       => $this->permUpdate,
                 ':d'       => $this->permDelete
-            ]);
+            ]);            
+            echo '<div class="card-panel green lighten-4">';
+            echo '<h6 class="green-text">Usuário cadastrado com sucesso!</h6>';
+            echo '</div>';        
 
-            echo '<div class="alert alert-success" role="alert">Usuário cadastrado com sucesso!</div>';
-
-        } catch (PDOException $e) {
-            echo '<div class="alert alert-danger" role="alert">Erro ao cadastrar: ' . $e->getMessage() . '</div>';
+        } catch (PDOException $e) {            
+            echo '<div class="card-panel red lighten-4">';
+            echo '<h6 class="red-text">Erro ao cadastrar: ' . $e->getMessage() . '</h6>';
+            echo '</div>';
         }
     }
 
@@ -185,9 +187,13 @@ class ClasseUsuario {
                         <th>Delete</th>                        
                     </tr>
                 </thead><tbody>';
-    
+
+            $cores = ['#E3F2FD', '#BBDEFB']; // Tons de azul claros
+            $i = 0;
+
             while ($linha = $consulta->fetch(PDO::FETCH_ASSOC)) {
-                echo '<tr>';
+                $corLinha = $cores[$i % count($cores)]; // alterna entre as cores
+                echo '<tr style="background-color:' . $corLinha . ';">';
                 echo '<td>' . htmlspecialchars($linha['codigo']) . '</td>';
                 echo '<td>' . htmlspecialchars($linha['nome']) . '</td>';
                 echo '<td>' . htmlspecialchars($linha['usuario']) . '</td>';
@@ -211,6 +217,7 @@ class ClasseUsuario {
                 echo '</td>';
     
                 echo '</tr>';
+                $i++;
             }
     
             echo '</tbody></table></div>';

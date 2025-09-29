@@ -1,4 +1,11 @@
 <?php
+session_start();
+
+// Verifica se o usuário está autenticado
+if (!isset($_SESSION['usuario_codigo'])) {
+    header("Location: ../index.php");
+    exit;
+}
 // Processamento do formulário
 $nome = $usuario = $senha = "";
 $permCreate = $permRead = $permUpdate = $permDelete = 0;
@@ -87,6 +94,14 @@ if (isset($_POST["enviar"])) {
                             Cadastrar
                             <i class="material-icons right">person_add</i>
                         </button>
+
+                        <!-- Botão para voltar ao menu -->
+                        <div class="center-align" style="margin-top: 20px;">
+                            <a href="../menu.php" class="btn waves-effect waves-light grey">
+                                <i class="material-icons left">arrow_back</i> Voltar para o Menu
+                            </a>
+                        </div>
+
                     </form>
                 </div>
             </div>
@@ -103,6 +118,19 @@ if (isset($_POST["enviar"])) {
                     <p><strong>Delete:</strong> <?= $permDelete ?></p> 
                 </div> 
             <?php } ?>
+
+            <?php
+            if (isset($_POST["enviar"])) {
+                // Exemplo de uso
+                require_once '../model/ClasseUsuario.php';
+
+                // Cria objeto já passando os parâmetros pelo construtor
+                $usuario = new ClasseUsuario($codigo = 0, $nome, $usuario, $senha, $permCreate, $permRead, $permUpdate, $permDelete);
+
+                // Chama o método para salvar no banco
+                $usuario->cadastrarUsuario();
+            }
+            ?>
 
         </div>
     </div>

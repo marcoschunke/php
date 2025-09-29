@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+// Verifica se o usuário está autenticado
+if (!isset($_SESSION['usuario_codigo'])) {
+    header("Location: index.php");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -15,10 +24,13 @@
 <nav class="blue">
     <div class="nav-wrapper container">
         <a href="#" class="brand-logo">Sistema Usuários</a>
-        <a href="#" data-target="mobile-menu" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <a href="#" data-target="mobile-menu" class="sidenav-trigger">
+            <i class="material-icons">menu</i>
+        </a>
         <ul class="right hide-on-med-and-down">
             <li><a href="view/cadastrarUsuario.php"><i class="material-icons left">person_add</i>Cadastrar Usuário</a></li>
             <li><a href="view/listarUsuarios.php"><i class="material-icons left">list</i>Listar Usuários</a></li>
+            <li><a href="logout.php"><i class="material-icons left">exit_to_app</i>Sair</a></li>
         </ul>
     </div>
 </nav>
@@ -27,12 +39,17 @@
 <ul class="sidenav" id="mobile-menu">
     <li><a href="view/cadastrarUsuario.php"><i class="material-icons">person_add</i>Cadastrar Usuário</a></li>
     <li><a href="view/listarUsuarios.php"><i class="material-icons">list</i>Listar Usuários</a></li>
+    <li><a href="logout.php"><i class="material-icons">exit_to_app</i>Sair</a></li>
 </ul>
 
 <!-- Conteúdo -->
 <div class="container section">
-    <h4 class="center-align blue-text">Bem-vindo ao Sistema de Usuários</h4>
-    <p class="center-align">Use o menu acima para navegar entre as telas de cadastro e listagem de usuários.</p>
+    <h4 class="center-align blue-text">
+        Bem-vindo, <?= $_SESSION['usuario_nome']; ?>!
+    </h4>
+    <p class="center-align">
+        Use o menu acima para navegar entre as telas de cadastro e listagem de usuários.
+    </p>
 </div>
 
 <!-- Materialize JS -->

@@ -1,9 +1,10 @@
 <?php
 session_start();
+
 // Processamento do formulário
-$usuario = $senha = "";
+$login = $senha = "";
 if (isset($_POST["enviar"])) {
-    $usuario = $_POST["usuario"];
+    $login = $_POST["usuario"];
     $senha = $_POST["senha"];
 }
 ?>
@@ -52,8 +53,8 @@ if (isset($_POST["enviar"])) {
             <?php if (isset($_POST["enviar"])) { ?> 
                 <div class="card-panel teal lighten-4"> 
                     <h6 class="teal-text">Dados Recebidos:</h6> 
-                    <p><strong>usuario:</strong> <?= $usuario ?></p> 
-                    <p><strong>senha:</strong> <?= $senha ?></p>  
+                    <p><strong>usuario:</strong> <?= htmlspecialchars($login) ?></p> 
+                    <p><strong>senha:</strong> <?= htmlspecialchars($senha) ?></p>  
                 </div> 
             <?php } ?>
 
@@ -61,16 +62,30 @@ if (isset($_POST["enviar"])) {
             require_once 'model/ClasseUsuario.php';
             
             if (isset($_POST["enviar"])) {
-
                 // Cria um objeto da classe
-                $usuario = new ClasseUsuario();
+                $codigo = 0;
+                $nome = "";
+                $usuario = $_POST["usuario"];
+                $senha = $_POST["senha"];
+                $permCreate = 0;
+                $permRead = 0;
+                $permUpdate = 0;
+                $permDelete = 0;
+                $usuarioObj = new ClasseUsuario($codigo, $nome, $usuario, $senha, $permCreate, $permRead, $permUpdate, $permDelete);
+                $usuarioObj->setUsuario($login);
+                $usuarioObj->setSenha($senha);
 
-                // Chama o método para listar os usuários
-                $usuario->autenticar($usuario, $senha);
-                
-            
-            }
-
+                if ($usuarioObj->autenticar()) {
+                    header("Location: menu.php");
+                    echo '<div class="card-panel green lighten-4">';
+                    echo '<h6 class="green-text">Bem-vindo, ' . $_SESSION['usuario_nome'] . '!</h6>';
+                    echo '</div>';
+                } else {
+                    echo '<div class="card-panel red lighten-4">';
+                    echo '<h6 class="red-text">Usuário ou senha inválidos!</h6>';
+                    echo '</div>';
+                }
+            }            
             ?>
 
         </div>

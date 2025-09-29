@@ -1,8 +1,48 @@
 <?php
-// Processamento do formulário
+session_start();
+
+// Verifica se o usuário está autenticado
+if (!isset($_SESSION['usuario_codigo'])) {
+    header("Location: ../index.php");
+    exit;
+}
+
+require_once '../model/ClasseUsuario.php';
+require_once '../model/Conexao.php';
+
+// Pega o código do usuário via GET
+$codigo = isset($_GET['codigo']) ? (int)$_GET['codigo'] : 0;
+
+// Inicializa variáveis
 $nome = $usuario = $senha = "";
 $permCreate = $permRead = $permUpdate = $permDelete = 0;
 
+// Se houver código válido, busca os dados do usuário
+if ($codigo > 0 && !isset($_POST['alterar'])) {
+    try {
+        $pdo = getConexao();
+        $stmt = $pdo->prepare("SELECT * FROM usuario WHERE codigo = :codigo");
+        $stmt->execute([':codigo' => $codigo]);
+        $linha = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($linha) {
+            $nome       = $linha['nome'];
+            $usuario    = $linha['usuario'];
+            $senha      = $linha['senha'];
+            $permCreate = $linha['create'];
+            $permRead   = $linha['read'];
+            $permUpdate = $linha['update'];
+            $permDelete = $linha['delete'];
+        } else {
+            echo '<div class="card-panel red lighten-4">Usuário não encontrado!</div>';
+        }
+
+    } catch (PDOException $e) {
+        echo '<div class="card-panel red lighten-4">Erro ao buscar usuário: ' . $e->getMessage() . '</div>';
+    }
+}
+
+// Se o formulário for enviado
 if (isset($_POST["alterar"])) {
     $nome       = $_POST["nome"];
     $usuario    = $_POST["usuario"];
@@ -11,16 +51,18 @@ if (isset($_POST["alterar"])) {
     $permRead   = isset($_POST["read"]) ? 1 : 0;
     $permUpdate = isset($_POST["update"]) ? 1 : 0;
     $permDelete = isset($_POST["delete"]) ? 1 : 0;
+
+    // Atualiza o usuário
+    $usuarioObj = new ClasseUsuario($codigo, $nome, $usuario, $senha, $permCreate, $permRead, $permUpdate, $permDelete);
+    $usuarioObj->atualizarUsuario();
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastro de Usuário</title>
-    <!-- Importando Materialize CSS -->
+    <title>Alterar Usuário</title>
     <link href="../css/materialize.min.css" rel="stylesheet">
-    <!-- Ícones do Google -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
@@ -33,51 +75,51 @@ if (isset($_POST["alterar"])) {
             <div class="card z-depth-3">
                 <div class="card-content">
                     <span class="card-title center blue-text">Alterar Usuário</span>
-                    <form method="post" action="alterarUsuario.php">
+                    <form method="post" action="alterarUsuario.php?codigo=<?= $codigo ?>">
 
                         <!-- Nome -->
                         <div class="input-field">
                             <i class="material-icons prefix">person</i>
-                            <input id="nome" type="text" name="nome" required>
-                            <label for="nome">Nome Completo</label>
+                            <input id="nome" type="text" name="nome" required value="<?= htmlspecialchars($nome) ?>">
+                            <label for="nome" class="active">Nome Completo</label>
                         </div>
 
                         <!-- Usuário -->
                         <div class="input-field">
                             <i class="material-icons prefix">account_circle</i>
-                            <input id="usuario" type="text" name="usuario" required>
-                            <label for="usuario">Usuário</label>
+                            <input id="usuario" type="text" name="usuario" required value="<?= htmlspecialchars($usuario) ?>">
+                            <label for="usuario" class="active">Usuário</label>
                         </div>
 
                         <!-- Senha -->
                         <div class="input-field">
                             <i class="material-icons prefix">vpn_key</i>
-                            <input id="senha" type="password" name="senha" required>
-                            <label for="senha">Senha</label>
+                            <input id="senha" type="password" name="senha" required value="<?= htmlspecialchars($senha) ?>">
+                            <label for="senha" class="active">Senha</label>
                         </div>
 
                         <!-- Permissões -->
                         <p>
                             <label>
-                                <input type="checkbox" name="create" value="1" />
+                                <input type="checkbox" name="create" value="1" <?= $permCreate ? 'checked' : '' ?> />
                                 <span>Create</span>
                             </label>
                         </p>
                         <p>
                             <label>
-                                <input type="checkbox" name="read" value="1" />
+                                <input type="checkbox" name="read" value="1" <?= $permRead ? 'checked' : '' ?> />
                                 <span>Read</span>
                             </label>
                         </p>
                         <p>
                             <label>
-                                <input type="checkbox" name="update" value="1" />
+                                <input type="checkbox" name="update" value="1" <?= $permUpdate ? 'checked' : '' ?> />
                                 <span>Update</span>
                             </label>
                         </p>
                         <p>
                             <label>
-                                <input type="checkbox" name="delete" value="1" />
+                                <input type="checkbox" name="delete" value="1" <?= $permDelete ? 'checked' : '' ?> />
                                 <span>Delete</span>
                             </label>
                         </p>
@@ -87,28 +129,21 @@ if (isset($_POST["alterar"])) {
                             Alterar
                             <i class="material-icons right">edit</i>
                         </button>
+
+                        <!-- Botão para voltar ao menu -->
+                        <div class="center-align" style="margin-top: 20px;">
+                            <a href="../menu.php" class="btn waves-effect waves-light grey">
+                                <i class="material-icons left">arrow_back</i> Voltar para o Menu
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>
-
-            <?php if (isset($_POST["alterar"])) { ?> 
-                <div class="card-panel teal lighten-4"> 
-                    <h6 class="teal-text">Dados Recebidos:</h6> 
-                    <p><strong>Nome:</strong> <?= $nome ?></p> 
-                    <p><strong>Usuário:</strong> <?= $usuario ?></p> 
-                    <p><strong>Senha:</strong> <?= $senha ?></p> 
-                    <p><strong>Create:</strong> <?= $permCreate ?></p> 
-                    <p><strong>Read:</strong> <?= $permRead ?></p> 
-                    <p><strong>Update:</strong> <?= $permUpdate ?></p> 
-                    <p><strong>Delete:</strong> <?= $permDelete ?></p> 
-                </div> 
-            <?php } ?>
 
         </div>
     </div>
 </div>
 
-<!-- Importando Materialize JS -->
-<script src="js/materialize.min.js"></script>
+<script src="../js/materialize.min.js"></script>
 </body>
 </html>
